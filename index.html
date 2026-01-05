@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Geriatría - Parte 3</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --primary: #bb86fc;
+            --primary-hover: #a370f7;
+            --correct: #22c55e;
+            --incorrect: #ef4444;
+            --accent: #334155;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .main-content {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .quiz-container {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid var(--accent);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            display: flex;
+            flex-direction: column;
+            min-height: 500px;
+        }
+
+        .q-header {
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 20px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .q-num {
+            background: var(--primary);
+            color: #000;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .score-inline {
+            display: flex;
+            gap: 15px;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .score-item.c { color: var(--correct); }
+        .score-item.i { color: var(--incorrect); }
+
+        .q-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            line-height: 1.4;
+            display: block;
+        }
+
+        .options-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .option {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--accent);
+            padding: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .option:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .option.correct-choice {
+            background: rgba(34, 197, 94, 0.15) !important;
+            border-color: var(--correct) !important;
+            color: var(--correct);
+            pointer-events: none;
+        }
+
+        .option.wrong-choice {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border-color: var(--incorrect) !important;
+            color: var(--incorrect);
+            pointer-events: none;
+        }
+
+        .option.reveal {
+            border: 2px dashed var(--correct);
+        }
+
+        .prefix {
+            font-weight: 800;
+            color: var(--primary);
+            min-width: 25px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 35px;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+            background: var(--accent);
+            color: white;
+            flex: 1;
+        }
+
+        .btn:hover:not(:disabled) {
+            filter: brightness(1.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .progress-bar-bg {
+            height: 4px;
+            background: var(--accent);
+            margin-top: 20px;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-content">
+    <div class="quiz-container">
+        <div id="quizBox">
+            <!-- Contenido dinámico -->
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn" id="prevBtn" onclick="changeQuestion(-1)">Anterior</button>
+            <button class="btn btn-primary" id="nextBtn" onclick="changeQuestion(1)">Siguiente</button>
+        </div>
+
+        <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { id: 26, q: "Entre las funciones principales de la Consulta Externa de Geriatría NO está:", options: ["Permiten disminuir los ingresos hospitalarios e institucionalización.", "Control de prescripciones y recetas en pacientes complejos.", "VGI de pacientes complejos.", "Es el nivel adecuado para tratar los síndromes geriátricos y derivación a otros niveles."], correct: 3 },
+        { id: 27, q: "Con respecto a la necesidad de dormir y descansar el anciano presenta:", options: ["Mayor cantidad de tiempo dedicado a las fases I y II del sueño.", "Menor cantidad de tiempo dedicado a las fases III y IV.", "El sueño profundo (REM) aumenta progresivamente con la edad.", "Las respuestas a y b son ciertas."], correct: 3 },
+        { id: 28, q: "Etiqueta diagnóstica de estreñimiento r/c (señala la FALSA):", options: ["Falta de intimidad.", "Abuso de sedantes.", "Abuso de antiácidos que contenga aluminio.", "Dieta rica en fibras."], correct: 3 },
+        { id: 29, q: "Señala la INCORRECTA sobre la pirámide de población en España:", options: ["El baby boom llevará a un gran aumento de personas mayores.", "Aumento de grupos de edad muy avanzada respecto a los ancianos.", "Presenta un abombamiento en zona joven por el baby boom.", "Presenta una zona regresiva infantil por baja fecundidad."], correct: 2 },
+        { id: 30, q: "Efecto adverso NO FRECUENTE de la medicación en ancianos:", options: ["Estreñimiento.", "Caída del cabello.", "Confusión mental.", "Caídas/Hipotensión.", "Incontinencia urinaria."], correct: 1 },
+        { id: 31, q: "La UPP de Grado III se caracteriza por:", options: ["Aparece una lesión sangrante.", "Son ciertas c y d.", "Aparece una escara negruzca.", "Afectación del tejido celular subcutáneo."], correct: 1 },
+        { id: 32, q: "Concepto de anciano sano. Señala la parte INCORRECTA:", options: ["La homeostasis está en peligro (fragilidad).", "Incluye a cualquier persona >65 años sin enfermedad.", "Nivel funcional óptimo permite independencia.", "Envejecimiento requiere adaptación progresiva."], correct: 1 },
+        { id: 33, q: "Edad crítica o presenil está entre:", options: ["50-60 años.", "45-60 años.", "55-65 años.", "40-45 años."], correct: 1 },
+        { id: 34, q: "La escala de Barthel valora (señala la INDEBIDA):", options: ["Vestirse.", "Ir al WC.", "Comer.", "Tomar medicación."], correct: 3 },
+        { id: 35, q: "En la Unidad Geriátrica de Agudos deben ingresar pacientes que:", options: ["Padecen enfermedad aguda o crónica reagudizada.", "Precisan VGI que no pueda realizarse a otros niveles.", "Necesitan apoyo social puntualmente.", "Son verdaderas a y b."], correct: 3 },
+        { id: 37, q: "Área que más problemas nutricionales provoca en el anciano:", options: ["El estado de la boca.", "El estómago.", "El colon descendente.", "El intestino delgado."], correct: 0 },
+        { id: 38, q: "Entre las AVD-I (Instrumentales) NO está:", options: ["Asistir a reuniones sociales.", "Usar el teléfono.", "Tomar medicación.", "Usar dinero.", "Usar transportes."], correct: 0 },
+        { id: 44, q: "Respecto al proceso de envejecimiento (señala la FALSA):", options: ["Proceso progresivo de desadaptación.", "Consecuencia de la acción del tiempo.", "De carácter irreversible.", "El desarrollo de la ciencia permite eliminarlo."], correct: 3 },
+        { id: 45, q: "Tres síntomas más frecuentes en el SUD:", options: ["Dolor, náuseas y hemorragias.", "Disnea, vómitos y hemorragias.", "Vómitos, diarrea y fiebre.", "Estertores, dolor y agitación."], correct: 3 },
+        { id: 47, q: "Alteración farmacocinética más importante en ancianos:", options: ["Distribución.", "Metabolismo hepático.", "Absorción.", "Eliminación (función renal)."], correct: 3 },
+        { id: 50, q: "Objetivos de Unidades de Cuidados Continuados (Señala la FALSA):", options: ["Tratar enfermedades crónicas.", "Prima calidad de vida sobre restauración de función.", "Tratamiento y curación de enfermedades.", "Mantener al anciano en su domicilio."], correct: 2 },
+        { id: 55, q: "Dolor influido por factores (señala la FALSA):", options: ["Edad (debe ser desatendido).", "Labilidad emocional.", "Confusión mental.", "Necesidad de llamar la atención."], correct: 0 },
+        { id: 57, q: "Fármaco NO empleado por vía subcutánea en SUD:", options: ["Midazolam.", "Nolotil.", "Morfina.", "Hioscina."], correct: 1 },
+        { id: 59, q: "El líder del equipo multidisciplinario es:", options: ["El enfermero siempre.", "Depende de la situación y el caso.", "El geriatra siempre.", "El trabajador social."], correct: 1 },
+        { id: 64, q: "Pilar básico de la Geriatría (Señala la INCORRECTA):", options: ["VGI.", "Equipo multidisciplinario.", "Nivel asistencial.", "Cuidados de enfermería."], correct: 3 },
+        { id: 66, q: "Sobre las AVD-A (Avanzadas) es FALSO:", options: ["Participación comunitaria.", "Desarrollar rol social.", "Son las últimas en desaparecer.", "Concepto de reciente aparición."], correct: 2 },
+        { id: 71, q: "Escalas para AVD Básicas:", options: ["Cruz Roja, Katz y Lobo.", "Barthel, Katz y Lawton.", "Barthel, Cruz Roja e Índice de Katz.", "Lobo, Yesavage y Katz."], correct: 2 },
+        { id: 77, q: "Para valorar la depresión se usa:", options: ["Incapacidad Mental Cruz Roja.", "Escala de Yesavage.", "Miniexamen Lobo.", "Test de Pfeiffer."], correct: 1 },
+        { id: 79, q: "Afirmación VERDADERA:", options: ["Tras caída siempre es alto riesgo.", "Pluripatología = paciente geriátrico.", "Vivir solo = paciente de alto riesgo.", "Frágil debe cumplir varios requisitos (ej. >80 años)."], correct: 3 },
+        { id: 80, q: "Seleccione la afirmación FALSA:", options: ["Visita domiciliaria es esencial.", "Objetivo principal en frágiles no es la prevención.", "En primaria se tratan todos los geriátricos.", "Seguimiento de crónicos es ideal para frágiles."], correct: 1 }
+    ];
+
+    let currentIdx = 0;
+    let correctCount = 0;
+    let incorrectCount = 0;
+    let userAnswers = new Array(questions.length).fill(null);
+
+    function renderQuestion() {
+        const q = questions[currentIdx];
+        const box = document.getElementById('quizBox');
+        
+        box.innerHTML = `
+            <div class="q-header">
+                <div class="header-top">
+                    <div class="q-num">Pregunta ${currentIdx + 1} de ${questions.length}</div>
+                    <div class="score-inline">
+                        <span class="score-item c">Aciertos: ${correctCount}</span>
+                        <span class="score-item i">Errores: ${incorrectCount}</span>
+                    </div>
+                </div>
+                <span class="q-text">${q.id}. ${q.q}</span>
+            </div>
+            <div class="options-group" id="optionsGroup"></div>
+        `;
+
+        const group = document.getElementById('optionsGroup');
+        q.options.forEach((opt, oIdx) => {
+            const div = document.createElement('div');
+            div.className = 'option';
+            
+            if (userAnswers[currentIdx] !== null) {
+                if (oIdx === q.correct) div.classList.add('correct-choice');
+                if (userAnswers[currentIdx] === oIdx && oIdx !== q.correct) div.classList.add('wrong-choice');
+                if (userAnswers[currentIdx] !== q.correct && oIdx === q.correct) div.classList.add('reveal');
+                div.style.pointerEvents = 'none';
+            }
+
+            div.innerHTML = `<span class="prefix">${String.fromCharCode(97 + oIdx)})</span> <span>${opt}</span>`;
+            div.onclick = () => selectOption(oIdx);
+            group.appendChild(div);
+        });
+
+        document.getElementById('prevBtn').disabled = currentIdx === 0;
+        document.getElementById('nextBtn').innerText = currentIdx === questions.length - 1 ? 'Finalizar' : 'Siguiente';
+        
+        const progress = ((currentIdx + 1) / questions.length) * 100;
+        document.getElementById('progressBar').style.width = `${progress}%`;
+    }
+
+    function selectOption(oIdx) {
+        if (userAnswers[currentIdx] !== null) return;
+
+        userAnswers[currentIdx] = oIdx;
+        const isCorrect = oIdx === questions[currentIdx].correct;
+
+        if (isCorrect) correctCount++;
+        else incorrectCount++;
+
+        renderQuestion();
+    }
+
+    function changeQuestion(step) {
+        const newIdx = currentIdx + step;
+        if (newIdx >= 0 && newIdx < questions.length) {
+            currentIdx = newIdx;
+            renderQuestion();
+        } else if (newIdx === questions.length) {
+            showFinalResults();
+        }
+    }
+
+    function showFinalResults() {
+        const box = document.getElementById('quizBox');
+        const percentage = ((correctCount / questions.length) * 100).toFixed(1);
+        
+        box.innerHTML = `
+            <div style="text-align: center; padding: 40px 0;">
+                <h2 style="font-size: 2rem; color: var(--primary);">¡Test Finalizado!</h2>
+                <div style="font-size: 4rem; margin: 20px 0; font-weight: 800;">${percentage}%</div>
+                <p style="font-size: 1.2rem; opacity: 0.8;">Has acertado ${correctCount} de ${questions.length} preguntas.</p>
+                <button class="btn btn-primary" style="margin-top: 30px; width: auto;" onclick="location.reload()">Reiniciar Test</button>
+            </div>
+        `;
+        document.querySelector('.nav-buttons').style.display = 'none';
+    }
+
+    renderQuestion();
+</script>
+
+</body>
+</html>
